@@ -1,4 +1,4 @@
-import SVGKit
+import SDWebImage
 
 class SvgCacheManager {
     static let shared = SvgCacheManager()
@@ -9,26 +9,28 @@ class SvgCacheManager {
         self.cache = NSCache<NSString, CachedSVG>()
     }
 
-    // Pass the cacheTime in milliseconds
-    func getSVG(forKey key: String, cacheTime: TimeInterval) -> SVGKImage? {
+    func getSVG(forKey key: String, cacheTime: TimeInterval) -> UIImage? {
         guard let cachedSVG = cache.object(forKey: key as NSString),
-              Date().timeIntervalSince(cachedSVG.timestamp) < cacheTime / 1000 else { // Convert milliseconds to seconds
+            Date().timeIntervalSince(cachedSVG.timestamp) < cacheTime / 1000 else {
+            print("Cache expired or not found for key: \(key)")
             return nil
         }
+        print("Returning cached SVG for key: \(key)")
         return cachedSVG.svgImage
     }
 
-    func saveSVG(_ svgImage: SVGKImage, forKey key: String, cacheTime: TimeInterval) {
+    func saveSVG(_ svgImage: UIImage, forKey key: String, cacheTime: TimeInterval) {
         let cachedSVG = CachedSVG(svgImage: svgImage, timestamp: Date())
         cache.setObject(cachedSVG, forKey: key as NSString)
+        print("Saved SVG to cache with key: \(key)")
     }
 }
 
 class CachedSVG {
-    let svgImage: SVGKImage
+    let svgImage: UIImage
     let timestamp: Date
 
-    init(svgImage: SVGKImage, timestamp: Date) {
+    init(svgImage: UIImage, timestamp: Date) {
         self.svgImage = svgImage
         self.timestamp = timestamp
     }

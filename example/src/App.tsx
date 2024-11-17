@@ -5,7 +5,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <SvgNativeView
-        uri="https://dl-uat.sdb247.com/images/avatar/light/unknown/svg/unknown.svg"
+        uri="https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/tiger.svg"
         style={styles.svg}
         cacheTime={86400000} // Cache time in milliseconds (e.g., 1 day)
       />
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   svg: {
-    width: 60,
-    height: 60,
+    width: 200,
+    height: 200,
   },
 });

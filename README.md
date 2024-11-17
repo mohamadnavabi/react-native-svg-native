@@ -1,6 +1,6 @@
 # react-native-svg-native
 
-SVG native view
+Show SVG natively
 
 ## Installation
 
@@ -8,26 +8,29 @@ SVG native view
 npm install react-native-svg-native
 ```
 
+```sh
+yarn add react-native-svg-native
+```
+
+## Manual installation
+
+_ios/Podfile_
+
+```
+  pod 'SDWebImage', '~> 5.0', :modular_headers => true
+  pod 'SDWebImageSVGCoder', '~> 1.0', :modular_headers => true
+```
+
 ## Usage
 
-
-```js
-import { SvgNativeView } from "react-native-svg-native";
+```
+import { SvgNativeView } from 'react-native-svg-native';
 
 // ...
 
-<SvgNativeView color="tomato" />
+<SvgNativeView
+  uri="https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/tiger.svg"
+  style={{ width: 200, height: 200 }}
+  cacheTime={86400000} // is optional default cache is disable: Cache time in milliseconds (e.g., 1 day)
+/>
 ```
-
-
-## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
-
-## License
-
-MIT
-
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

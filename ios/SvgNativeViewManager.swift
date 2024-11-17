@@ -1,22 +1,32 @@
 import UIKit
-import SVGKit
+import SDWebImage
+import SDWebImageSVGCoder
 
 @objc(SvgNativeViewManager)
 class SvgNativeViewManager: RCTViewManager {
 
-    override func view() -> (SvgNativeView) {
+    override init() {
+        super.init()
+
+        let svgCoder = SDImageSVGCoder.shared
+        SDImageCodersManager.shared.addCoder(svgCoder)
+    }
+
+    override func view() -> SvgNativeView {
         return SvgNativeView()
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {
-        return false
+        return true
     }
 }
 
+@objc(SvgNativeView)
 class SvgNativeView: UIView {
 
-    private var svgImageView: SVGKFastImageView?
+    private var imageView: UIImageView?
 
+    @objc var cacheTime: Double = 0
     @objc var uri: String = "" {
         didSet {
             loadSvg()
@@ -24,12 +34,6 @@ class SvgNativeView: UIView {
     }
 
     @objc var defaultSize: CGSize = CGSize(width: 100, height: 100)
-
-    @objc var cacheTime: TimeInterval = 0 {
-        didSet {
-            loadSvg()
-        }
-    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -42,60 +46,43 @@ class SvgNativeView: UIView {
     }
 
     private func setupView() {
-        svgImageView = SVGKFastImageView(svgkImage: nil)
-        if let svgImageView = svgImageView {
-            svgImageView.contentMode = .scaleAspectFit
-            svgImageView.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(svgImageView)
+        imageView = UIImageView()
+        imageView?.contentMode = .scaleAspectFit
+        imageView?.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(imageView!)
 
-            NSLayoutConstraint.activate([
-                svgImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
-                svgImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-                svgImageView.topAnchor.constraint(equalTo: topAnchor),
-                svgImageView.bottomAnchor.constraint(equalTo: bottomAnchor)
-            ])
-        }
+        NSLayoutConstraint.activate([
+            imageView!.leadingAnchor.constraint(equalTo: leadingAnchor),
+            imageView!.trailingAnchor.constraint(equalTo: trailingAnchor),
+            imageView!.topAnchor.constraint(equalTo: topAnchor),
+            imageView!.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
     }
 
     private func loadSvg() {
         guard let url = URL(string: uri) else {
+            print("Invalid URL: \(uri)")
             return
         }
 
-        // Adjust the cache expiration based on the passed cacheTime
-        if let cachedSVG = SvgCacheManager.shared.getSVG(forKey: uri, cacheTime: cacheTime) {
-            updateImageView(with: cachedSVG)
+        let cacheKey = uri
+        let cache = SDImageCache.shared
+
+        if let cachedImage = cache.imageFromCache(forKey: cacheKey) {
+            imageView?.image = cachedImage
             return
         }
 
-        DispatchQueue.global().async {
-            do {
-                let data = try Data(contentsOf: url)
-                if let svgImage = SVGKImage(data: data) {
-                    DispatchQueue.main.async {
-                        // Check if the SVG has no internal size or a viewBox
-                        if svgImage.size == .zero {
-                            if let svgDocument = svgImage.domDocument, svgDocument.documentElement?.getAttribute("viewBox") == nil {
-                                // Apply default size if no viewBox found
-                                svgImage.size = self.defaultSize
-                            }
-                        }
-                        
-                        // Now svgImage should have a valid size (either from the SVG or default size)
-                        SvgCacheManager.shared.saveSVG(svgImage, forKey: self.uri, cacheTime: self.cacheTime)
-                        self.updateImageView(with: svgImage)
-                    }
-                } else {
-                    print("Failed to parse SVG data.")
-                }
-            } catch {
-                print("Error loading SVG: \(error)")
+        let placeholder = UIImage(systemName: "photo")
+
+        imageView?.sd_setImage(with: url, placeholderImage: placeholder, options: [.retryFailed]) { [weak self] image, error, _, _ in
+            if let error = error {
+                print("Failed to load SVG image: \(error.localizedDescription)")
+            } else if let image = image {
+                cache.store(image, forKey: cacheKey, toDisk: true, completion: nil)
+            } else {
+                print("No image loaded.")
             }
         }
-    }
-
-    private func updateImageView(with svgImage: SVGKImage) {
-        svgImageView?.image = svgImage
-        svgImageView?.frame = CGRect(origin: .zero, size: svgImage.size)
     }
 }
