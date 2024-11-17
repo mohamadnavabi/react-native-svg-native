@@ -4,7 +4,11 @@ import { SvgNativeView } from 'react-native-svg-native';
 export default function App() {
   return (
     <View style={styles.container}>
-      <SvgNativeView color="#32a852" style={styles.box} />
+      <SvgNativeView
+        uri="https://dl-uat.sdb247.com/images/avatar/light/unknown/svg/unknown.svg"
+        style={styles.svg}
+        cacheTime={86400000} // Cache time in milliseconds (e.g., 1 day)
+      />
     </View>
   );
 }
@@ -15,9 +19,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  box: {
+  svg: {
     width: 60,
     height: 60,
-    marginVertical: 20,
   },
 });

@@ -12,8 +12,10 @@ const LINKING_ERROR =
   '- You are not using Expo Go\n';
 
 type SvgNativeProps = {
-  color: string;
+  uri: string;
   style: ViewStyle;
+  defaultSize?: { width: number; height: number };
+  cacheTime?: number;
 };
 
 const ComponentName = 'SvgNativeView';

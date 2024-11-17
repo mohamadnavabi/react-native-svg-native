@@ -17,6 +17,9 @@ end
 target 'SvgNativeExample' do
   config = use_native_modules!
 
+  pod 'SVGKit', :git => 'https://github.com/SVGKit/SVGKit.git', :branch => '3.x', :modular_headers => true
+  pod 'CocoaLumberjack', :modular_headers => true
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
@@ -29,6 +32,24 @@ target 'SvgNativeExample' do
   end
 
   post_install do |installer|
+    # fix the problem 'cstdint' file not found: https://github.com/SVGKit/SVGKit/issues/823
+    marker_file = File.join(installer.sandbox.root, 'SVGKit_fix_applied')
+    unless File.exist?(marker_file)
+      svgkit_path = File.join(installer.sandbox.pod_dir('SVGKit'), 'Source')
+      Dir.glob(File.join(svgkit_path, '**', '*.{h,m}')).each do |file|
+        FileUtils.chmod("u+w", file)
+
+        text = File.read(file)
+        new_contents = text.gsub('Node.h', 'SVGKit/Node.h')
+        File.open(file, 'w') { |f| f.write(new_contents) }
+      end
+
+      FileUtils.touch(marker_file)
+      puts "Post install script completed and marker file created"
+    else
+      puts "Marker file exists, skipping post install script"
+    end
+
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
