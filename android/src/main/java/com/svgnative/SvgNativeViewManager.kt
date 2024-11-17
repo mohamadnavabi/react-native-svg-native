@@ -1,20 +1,26 @@
 package com.svgnative
 
-import android.graphics.Color
-import android.view.View
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 
-class SvgNativeViewManager : SimpleViewManager<View>() {
-  override fun getName() = "SvgNativeView"
+class SvgNativeViewManager : SimpleViewManager<SvgImageView>() {
 
-  override fun createViewInstance(reactContext: ThemedReactContext): View {
-    return View(reactContext)
-  }
+    override fun getName() = "SvgNativeView"
 
-  @ReactProp(name = "color")
-  fun setColor(view: View, color: String) {
-    view.setBackgroundColor(Color.parseColor(color))
-  }
+    override fun createViewInstance(reactContext: ThemedReactContext): SvgImageView {
+        return SvgImageView(reactContext)
+    }
+
+    @ReactProp(name = "uri")
+    fun setUri(view: SvgImageView, uri: String?) {
+        if (uri != null) {
+            view.setSvgUri(uri)
+        }
+    }
+
+    @ReactProp(name = "cacheTime")
+    fun setCacheTime(view: SvgImageView, cacheTime: Int) {
+        view.cacheTime = cacheTime.toLong()
+    }
 }
