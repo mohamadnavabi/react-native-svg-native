@@ -10,16 +10,26 @@ class SvgCacheManager {
     }
 
     func getSVG(forKey key: String, cacheTime: TimeInterval) -> UIImage? {
+        if cacheTime == 0 {
+            cache.removeObject(forKey: key as NSString)
+            return nil
+        }
+
         guard let cachedSVG = cache.object(forKey: key as NSString),
             Date().timeIntervalSince(cachedSVG.timestamp) < cacheTime / 1000 else {
             print("Cache expired or not found for key: \(key)")
             return nil
         }
+        
         print("Returning cached SVG for key: \(key)")
         return cachedSVG.svgImage
     }
 
     func saveSVG(_ svgImage: UIImage, forKey key: String, cacheTime: TimeInterval) {
+        if cacheTime == 0 {
+            return
+        }
+
         let cachedSVG = CachedSVG(svgImage: svgImage, timestamp: Date())
         cache.setObject(cachedSVG, forKey: key as NSString)
         print("Saved SVG to cache with key: \(key)")
